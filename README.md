@@ -9,8 +9,14 @@ legible for Gopher clients.
 
 ## Install
 
-```#!go
+```#!sh
 $ go get githubcom/prologic/webgopher
+```
+
+or to run locally from the Git repo:
+
+```#!sh
+$ go run main.go
 ```
 
 ## Usage
@@ -25,7 +31,7 @@ Use your favorite Gopher client and pass in the URL you wish to browse on the
 WEB as the selector:
 
 ```#!sh
-$ lynx gopher://localhost:7000/1http://www.wikipedia.org/
+$ lynx gopher://localhost:7000/1www.wikipedia.org/
 ```
 
 ![Screenshot](/screenshot.png)
