@@ -16,7 +16,14 @@ type proxy struct{}
 func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 	log.Infof("Selector: %s", r.Selector)
 	url := strings.TrimPrefix(r.Selector, "/")
-	url = fmt.Sprintf("https://%s", url)
+	if (strings.HasPrefix(url,"https://")
+		|| strings.HasPrefix(url,"http://")) {
+		// User already specified the protocol, so we
+		// don't need to add it ourselves
+	} else {
+		// Default to https
+		url = fmt.Sprintf("https://%s", url)
+	}
 
 	res, err := http.Get(url)
 	if err != nil {
@@ -49,5 +56,6 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 }
 
 func main() {
+	fmt.Println("Server starting, use (e.g.) gopher://localhost:7000/1www.wikipedia.org/")
 	log.Fatal(gopher.ListenAndServe(":7000", &proxy{}))
 }
