@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"flag"
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"crypto/tls"
 
 	"github.com/prologic/go-gopher"
 	log "github.com/sirupsen/logrus"
@@ -56,6 +58,19 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 }
 
 func main() {
-	fmt.Println("Server starting, use (e.g.) gopher://localhost:7000/1www.wikipedia.org/")
-	log.Fatal(gopher.ListenAndServe(":7000", &proxy{}))
+	listen_address := flag.String("listen-address", ":7000", ":port or address:port to listen on")
+	no_security := flag.Bool("no-security", false, "Skip checking TLS certificates")
+	flag.Parse()
+	if (*no_security) {
+		// Don't check HTTPS certificates if -no-security is set
+		// (This is for if you want to intercept and alter HTTPS connections
+		// in an upstream proxy, for rewrite experiments etc)
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+	connect_address := *listen_address
+	if (strings.HasPrefix(connect_address, ":")) {
+		connect_address = "localhost" + connect_address
+	}
+	fmt.Println("Server starting, use (e.g.) gopher://%s/1www.wikipedia.org/",connect_address)
+	log.Fatal(gopher.ListenAndServe(*listen_address, &proxy{}))
 }
