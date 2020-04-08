@@ -36,6 +36,19 @@ $ lynx gopher://localhost:7000/1www.wikipedia.org/
 
 ![Screenshot](/screenshot.png)
 
+## Using an upstream proxy
+
+If you need the HTTP or HTTPS requests from `webgopher` to
+go through a proxy, set the `http_proxy` environment
+variable before running `webgopher`.  This can be used for
+example to make [Web Adjuster](http://ssb22.user.srcf.net/adjuster)
+modify the pages first (you might want to use the Web
+Adjuster parameters `--real-proxy` and `--just-me`, and
+perhaps `--js-interpreter` to collect output from Javascript),
+but if you want to adjust HTTPS pages in this way, then you
+must run `webgopher` with `-no-security` so that the TLS
+certificates will not be checked.  Do not do this by default.
+
 ## License
 
 webgopher is licensed under the terms of the MIT License.
