@@ -16,8 +16,8 @@ type proxy struct{}
 func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 	log.Infof("Selector: %s", r.Selector)
 	url := strings.TrimPrefix(r.Selector, "/")
-	if (strings.HasPrefix(url,"https://")
-		|| strings.HasPrefix(url,"http://")) {
+	if (strings.HasPrefix(url,"https://") ||
+		strings.HasPrefix(url,"http://")) {
 		// User already specified the protocol, so we
 		// don't need to add it ourselves
 	} else {
