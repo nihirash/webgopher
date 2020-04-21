@@ -1,14 +1,14 @@
 package main
 
 import (
-	"fmt"
+	"crypto/tls"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
-	"crypto/tls"
 
 	"github.com/prologic/go-gopher"
 	log "github.com/sirupsen/logrus"
@@ -22,8 +22,8 @@ var HostTabPort string // we'll need this for links
 func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 	log.Infof("Selector: %s", r.Selector)
 	requestedURL := strings.TrimPrefix(r.Selector, "/")
-	if (strings.HasPrefix(requestedURL,"https://") ||
-		strings.HasPrefix(requestedURL,"http://")) {
+	if strings.HasPrefix(requestedURL,"https://") ||
+		strings.HasPrefix(requestedURL,"http://") {
 		// User already specified the protocol, so we
 		// don't need to add it ourselves
 	} else {
@@ -120,21 +120,21 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 }
 
 func main() {
-	listen_address := flag.String("listen-address", ":7000", ":port or address:port to listen on")
-	no_security := flag.Bool("no-security", false, "Skip checking TLS certificates")
+	listenAddress := flag.String("listen-address", ":7000", ":port or address:port to listen on")
+	noSecurity := flag.Bool("no-security", false, "Skip checking TLS certificates")
 	flag.Parse()
-	if (*no_security) {
+	if *noSecurity {
 		// Don't check HTTPS certificates if -no-security is set
 		// (This is for if you want to intercept and alter HTTPS connections
 		// in an upstream proxy, for rewrite experiments etc)
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
-	connect_address := *listen_address
-	if (strings.HasPrefix(connect_address, ":")) {
-		connect_address = "localhost" + connect_address
+	connectAddress := *listenAddress
+	if strings.HasPrefix(connectAddress, ":") {
+		connectAddress = "localhost" + connectAddress
 	}
-	i := strings.LastIndex(connect_address, ":")
-	HostTabPort = connect_address[:i] + "\t" + connect_address[i+1:]
-	fmt.Printf("Server starting, use (e.g.) gopher://%s/1www.wikipedia.org/\n",connect_address)
-	log.Fatal(gopher.ListenAndServe(*listen_address, &proxy{}))
+	i := strings.LastIndex(connectAddress, ":")
+	HostTabPort = connectAddress[:i] + "\t" + connectAddress[i+1:]
+	fmt.Printf("Server starting, use (e.g.) gopher://%s/1www.wikipedia.org/\n",connectAddress)
+	log.Fatal(gopher.ListenAndServe(*listenAddress, &proxy{}))
 }
