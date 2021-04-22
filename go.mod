@@ -1,4 +1,4 @@
-module github.com/prologic/webgopher
+module github.com/nihirash/webgopher
 
 go 1.13
 
