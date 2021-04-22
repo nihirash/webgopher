@@ -22,6 +22,13 @@ var HostTabPort string // we'll need this for links
 func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 	log.Infof("Selector: %s", r.Selector)
 	requestedURL := strings.TrimPrefix(r.Selector, "/")
+	requestedURL = strings.TrimPrefix(requestedURL, "\t");
+
+	if requestedURL == "/" || requestedURL == "" {
+		page, _ := ioutil.ReadFile("request.gopher")
+		w.Write(page)
+	}
+
 	if strings.HasPrefix(requestedURL,"https://") ||
 		strings.HasPrefix(requestedURL,"http://") {
 		// User already specified the protocol, so we
@@ -130,9 +137,11 @@ func main() {
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 	connectAddress := *listenAddress
+
 	if strings.HasPrefix(connectAddress, ":") {
 		connectAddress = "localhost" + connectAddress
 	}
+
 	i := strings.LastIndex(connectAddress, ":")
 	HostTabPort = connectAddress[:i] + "\t" + connectAddress[i+1:]
 	fmt.Printf("Server starting, use (e.g.) gopher://%s/1www.wikipedia.org/\n",connectAddress)
