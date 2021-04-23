@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"jaytaylor.com/html2text"
 	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/encoding"
 )
 
 type proxy struct{}
@@ -84,11 +85,9 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 		log.Fatal(err)
 	}
 
-	encoder := charmap.CodePage866.NewEncoder()
-	html, err := encoder.String(string(body))
-	if err != nil {
-		html = string(body)
-	}
+
+	html := string(body)
+
 	// but it might not be HTML, if a link was followed to a
 	// plain-text document or to a binary file
 	if mime_type != "" && ! strings.Contains(mime_type,"html") {
@@ -165,7 +164,16 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 
 	for _,s := range outputLines {
 		// Convert our Markdown links to Gopher selectors
-		w.Write([]byte(strings.ReplaceAll(regexp.MustCompile(`[[]([^]]*)[]][(]([^)]*)[)]`).ReplaceAllString("\r\ni"+s+"\t-\t-\t-\r\n","\r\n1$1\t$2\t"+HostTabPort+"\r\ni"),"\ni\n","\n")[1:]))
+		encoder := encoding.ReplaceUnsupported(charmap.CodePage866.NewEncoder())
+		txt := (strings.ReplaceAll(regexp.MustCompile(`[[]([^]]*)[]][(]([^)]*)[)]`).ReplaceAllString("\r\ni"+s+"\t-\t-\t-\r\n","\r\n1$1\t$2\t"+HostTabPort+"\r\ni"),"\ni\n","\n")[1:])
+		res, err := encoder.String(txt)
+		if err != nil {
+			fmt.Printf(err.Error())
+
+			w.Write([]byte (txt))
+		} else {
+			w.Write([]byte (res))
+		}
 		// TODO: wrap "i" lines at 67 characters?
 		// (but beware the formatting of pre, blockquote etc)
 	}
