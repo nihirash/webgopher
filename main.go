@@ -85,8 +85,10 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 	}
 
 	encoder := charmap.CodePage866.NewEncoder()
-	html := encoder.String(string(body))
-
+	html, err := encoder.String(string(body))
+	if err != nil {
+		html = string(body)
+	}
 	// but it might not be HTML, if a link was followed to a
 	// plain-text document or to a binary file
 	if mime_type != "" && ! strings.Contains(mime_type,"html") {
