@@ -146,10 +146,12 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 	outputLines := []string{};
 
 	for _, s := range lines {
-		if len(s) <= 63 {
+		re := regexp.MustCompile(`[[]([^]]*)[]][(]([^)]*)[)]`)
+
+		if len(s) <= 60 || re.FindString(s) != "" {
 			outputLines = append(outputLines, s)
 		} else {
-			tmpStrings := ChunkString(s, 63)
+			tmpStrings := ChunkString(s, 60)
 			
 			for _, s := range tmpStrings {
 				outputLines = append(outputLines, s)
