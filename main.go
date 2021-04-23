@@ -147,10 +147,10 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 
 	for _, s := range lines {
 		if len(s) <= 63 {
-			fmt.Printf("%d ", len(s))
 			outputLines = append(outputLines, s)
 		} else {
 			tmpStrings := ChunkString(s, 63)
+			
 			for _, s := range tmpStrings {
 				outputLines = append(outputLines, s)
 			}
@@ -159,7 +159,7 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 
 	for _,s := range outputLines {
 		// Convert our Markdown links to Gopher selectors
-		w.Write([]byte(strings.ReplaceAll(regexp.MustCompile(`[[]([^]]*)[]][(]([^)]*)[)]`).ReplaceAllString("\ni"+s+"\n","\n1$1\t$2\t"+HostTabPort+"\ni"),"\ni\n","\n")[1:]))
+		w.Write([]byte(strings.ReplaceAll(regexp.MustCompile(`[[]([^]]*)[]][(]([^)]*)[)]`).ReplaceAllString("\ni"+s+"\t-\t-\t-\n","\n1$1\t$2\t"+HostTabPort+"\ni"),"\ni\n","\n")[1:]))
 		// TODO: wrap "i" lines at 67 characters?
 		// (but beware the formatting of pre, blockquote etc)
 	}
