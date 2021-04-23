@@ -19,6 +19,25 @@ type proxy struct{}
 
 var HostTabPort string // we'll need this for links
 
+func ChunkString(s string, chunkSize int) []string {
+    var chunks []string
+    runes := []rune(s)
+
+    if len(runes) == 0 {
+        return []string{s}
+    }
+
+    for i := 0; i < len(runes); i += chunkSize {
+        nn := i + chunkSize
+        if nn > len(runes) {
+            nn = len(runes)
+        }
+        chunks = append(chunks, string(runes[i:nn]))
+    }
+    return chunks
+}
+
+
 func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 	log.Infof("Selector: %s", r.Selector)
 	requestedURL := strings.TrimPrefix(r.Selector, "/")
@@ -27,6 +46,8 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 	if requestedURL == "/" || requestedURL == "" {
 		page, _ := ioutil.ReadFile("request.gopher")
 		w.Write(page)
+		
+		return
 	}
 
 	if strings.HasPrefix(requestedURL,"https://") ||
@@ -102,14 +123,17 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 		// Use Markdown-style first, which html2text leaves alone.
 		href := regexp.MustCompile(`(?i) href="?([^>" ]*)`).FindStringSubmatch(m)[1]
 		u, err := url.Parse(href)
+		
 		if err != nil {
 			// not a valid URL: ignore it
 			return m
 		}
+
 		href2 := baseURL.ResolveReference(u)
 		text := regexp.MustCompile(`(?is)[^>]*>(.*?)</a>`).FindStringSubmatch(m)[1]
 		return fmt.Sprintf("[%s](%s)",text,href2) // Markdown-style, to go through html2text unchanged
 	})
+
 	text, err := html2text.FromString(html, html2text.Options{PrettyTables: true})
 	if err != nil {
 		msg := fmt.Sprintf("error converting html to text: %s", err)
@@ -117,8 +141,23 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 		w.WriteError(msg)
 		return
 	}
+	
+	lines := strings.Split(text,"\n")
+	outputLines := []string{};
 
-	for _,s := range strings.Split(text,"\n") {
+	for _, s := range lines {
+		if len(s) <= 63 {
+			fmt.Printf("%d ", len(s))
+			outputLines = append(outputLines, s)
+		} else {
+			tmpStrings := ChunkString(s, 63)
+			for _, s := range tmpStrings {
+				outputLines = append(outputLines, s)
+			}
+		}
+	}
+
+	for _,s := range outputLines {
 		// Convert our Markdown links to Gopher selectors
 		w.Write([]byte(strings.ReplaceAll(regexp.MustCompile(`[[]([^]]*)[]][(]([^)]*)[)]`).ReplaceAllString("\ni"+s+"\n","\n1$1\t$2\t"+HostTabPort+"\ni"),"\ni\n","\n")[1:]))
 		// TODO: wrap "i" lines at 67 characters?
