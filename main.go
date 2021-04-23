@@ -165,7 +165,7 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 	for _,s := range outputLines {
 		// Convert our Markdown links to Gopher selectors
 		encoder := encoding.ReplaceUnsupported(charmap.CodePage866.NewEncoder())
-		txt := (strings.ReplaceAll(regexp.MustCompile(`[[]([^]]*)[]][(]([^)]*)[)]`).ReplaceAllString("\r\ni"+s+"\t-\t-\t-\r\n","\r\n1$1\t$2\t"+HostTabPort+"\r\ni"),"\ni\n","\n")[1:])
+		txt := (strings.ReplaceAll(regexp.MustCompile(`[[]([^]]*)[]][(]([^)]*)[)]`).ReplaceAllString("\ni"+s+"\t-\t-\t-\n","\n1$1\t$2\t"+HostTabPort+"\ni"),"\ni\n","\n")[1:])
 		res, err := encoder.String(txt)
 		if err != nil {
 			fmt.Printf(err.Error())
