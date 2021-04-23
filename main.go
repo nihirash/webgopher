@@ -13,6 +13,7 @@ import (
 	"github.com/prologic/go-gopher"
 	log "github.com/sirupsen/logrus"
 	"jaytaylor.com/html2text"
+	"golang.org/x/text/encoding/charmap"
 )
 
 type proxy struct{}
@@ -83,7 +84,8 @@ func (p *proxy) ServeGopher(w gopher.ResponseWriter, r *gopher.Request) {
 		log.Fatal(err)
 	}
 
-	html := string(body)
+	encoder := charmap.CodePage866.NewEncoder()
+	html, err := encoder.String(string(body))
 
 	// but it might not be HTML, if a link was followed to a
 	// plain-text document or to a binary file
